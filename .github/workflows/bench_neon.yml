@@ -1,7 +1,6 @@
 name: Build and Test
 on:
   push: {}
-  pull_request: null
 defaults:
   run:
     shell: bash -euxo pipefail {0}
