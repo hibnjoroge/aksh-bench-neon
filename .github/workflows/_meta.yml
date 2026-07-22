@@ -33,7 +33,6 @@ on:
       sha:
         description: github.event.pull_request.head.sha on release PRs, github.sha otherwise
         value: ${{ jobs.tags.outputs.sha }}
-  push: {}
 permissions: {}
 defaults:
   run:

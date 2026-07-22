@@ -17,7 +17,6 @@ on:
       image:
         description: build-tools image
         value: ghcr.io/neondatabase/build-tools:${{ jobs.check-image.outputs.tag }}
-  push: {}
 defaults:
   run:
     shell: bash -euo pipefail {0}
