@@ -1,0 +1,74 @@
+name: Generate run metadata
+on:
+  workflow_call:
+    inputs:
+      github-event-name:
+        type: string
+        required: true
+      github-event-json:
+        type: string
+        required: true
+    outputs:
+      build-tag:
+        description: Tag for the current workflow run
+        value: ${{ jobs.tags.outputs.build-tag }}
+      release-tag:
+        description: Tag for the release if this is an RC PR run
+        value: ${{ jobs.tags.outputs.release-tag }}
+      previous-storage-release:
+        description: Tag of the last storage release
+        value: ${{ jobs.tags.outputs.storage }}
+      previous-proxy-release:
+        description: Tag of the last proxy release
+        value: ${{ jobs.tags.outputs.proxy }}
+      previous-compute-release:
+        description: Tag of the last compute release
+        value: ${{ jobs.tags.outputs.compute }}
+      run-kind:
+        description: The kind of run we're currently in. Will be one of `push-main`, `storage-release`, `compute-release`, `proxy-release`, `storage-rc-pr`, `compute-rc-pr`,  `proxy-rc-pr`, `pr`, or `workflow-dispatch`
+        value: ${{ jobs.tags.outputs.run-kind }}
+      release-pr-run-id:
+        description: Only available if `run-kind in [storage-release, proxy-release, compute-release]`. Contains the run ID of the `Build and Test` workflow, assuming one with the current commit can be found.
+        value: ${{ jobs.tags.outputs.release-pr-run-id }}
+      sha:
+        description: github.event.pull_request.head.sha on release PRs, github.sha otherwise
+        value: ${{ jobs.tags.outputs.sha }}
+  push: {}
+permissions: {}
+defaults:
+  run:
+    shell: bash -euo pipefail {0}
+jobs:
+  tags:
+    runs-on: ubuntu-latest
+    outputs:
+      build-tag: ${{ steps.build-tag.outputs.build-tag }}
+      release-tag: ${{ steps.build-tag.outputs.release-tag }}
+      compute: ${{ steps.previous-releases.outputs.compute }}
+      proxy: ${{ steps.previous-releases.outputs.proxy }}
+      storage: ${{ steps.previous-releases.outputs.storage }}
+      run-kind: ${{ steps.run-kind.outputs.run-kind }}
+      release-pr-run-id: ${{ steps.release-pr-run-id.outputs.release-pr-run-id }}
+      sha: ${{ steps.sha.outputs.sha }}
+    permissions:
+      contents: read
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - name: Get run kind
+      id: run-kind
+      run: 'echo "run: Get run kind"'
+    - name: Get the right SHA
+      id: sha
+      run: 'echo "run: Get the right SHA"'
+    - run: 'echo "uses: step"'
+    - name: Get build tag
+      id: build-tag
+      run: 'echo "run: Get build tag"'
+    - name: Get the previous release-tags
+      id: previous-releases
+      run: 'echo "run: Get the previous release-tags"'
+    - name: Get the release PR run ID
+      id: release-pr-run-id
+      if: ${{ contains(fromJSON('["storage-release", "compute-release", "proxy-release"]'), steps.run-kind.outputs.run-kind) }}
+      run: 'echo "run: Get the release PR run ID"'

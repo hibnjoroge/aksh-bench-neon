@@ -1,0 +1,83 @@
+name: Build build-tools image
+on:
+  workflow_call:
+    inputs:
+      archs:
+        description: Json array of architectures to build
+        type: string
+        required: false
+      debians:
+        description: Json array of Debian versions to build
+        type: string
+        required: false
+    outputs:
+      image-tag:
+        description: build-tools tag
+        value: ${{ jobs.check-image.outputs.tag }}
+      image:
+        description: build-tools image
+        value: ghcr.io/neondatabase/build-tools:${{ jobs.check-image.outputs.tag }}
+  push: {}
+defaults:
+  run:
+    shell: bash -euo pipefail {0}
+permissions: {}
+jobs:
+  check-image:
+    runs-on: ubuntu-latest
+    outputs:
+      archs: ${{ steps.set-variables.outputs.archs }}
+      debians: ${{ steps.set-variables.outputs.debians }}
+      tag: ${{ steps.set-variables.outputs.image-tag }}
+      everything: ${{ steps.set-more-variables.outputs.everything }}
+      found: ${{ steps.set-more-variables.outputs.found }}
+    permissions:
+      packages: read
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - name: Set variables
+      id: set-variables
+      run: 'echo "run: Set variables"'
+    - name: Set more variables
+      id: set-more-variables
+      run: 'echo "run: Set more variables"'
+  build-image:
+    needs:
+    - check-image
+    if: needs.check-image.outputs.found == 'false'
+    strategy:
+      matrix:
+        arch:
+        - main
+        debian:
+        - main
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+  merge-images:
+    needs:
+    - check-image
+    - build-image
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "uses: step"'
+    - name: Create multi-arch image
+      run: 'echo "run: Create multi-arch image"'

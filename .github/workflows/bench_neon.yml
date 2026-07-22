@@ -1,0 +1,99 @@
+name: Build and Test
+on:
+  push: {}
+  pull_request: null
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.ref_name == 'main' && github.sha || 'anysha' }}
+  cancel-in-progress: true
+env:
+  RUST_BACKTRACE: 1
+  COPT: -Werror
+  E2E_CONCURRENCY_GROUP: ${{ github.repository }}-e2e-tests-${{ github.ref_name }}-${{ github.ref_name == 'main' && github.sha || 'anysha' }}
+jobs:
+  check-permissions:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'run-no-ci') }}
+    uses: ./.github/workflows/check-permissions.yml
+    with:
+      github-event-name: ${{ github.event_name }}
+  cancel-previous-e2e-tests:
+    needs:
+    - check-permissions
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - name: Cancel previous e2e-tests runs for this PR
+      run: 'echo "run: Cancel previous e2e-tests runs for this PR"'
+  files-changed:
+    needs:
+    - check-permissions
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      check-rust-dependencies: ${{ steps.files-changed.outputs.rust_dependencies }}
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - name: Checkout
+      run: 'echo "uses: Checkout"'
+    - name: Check for file changes
+      run: 'echo "uses: Check for file changes"'
+      id: files-changed
+  meta:
+    needs:
+    - check-permissions
+    uses: ./.github/workflows/_meta.yml
+    with:
+      github-event-name: ${{ github.event_name }}
+      github-event-json: ${{ toJSON(github.event) }}
+  build-build-tools-image:
+    needs:
+    - check-permissions
+    uses: ./.github/workflows/build-build-tools-image.yml
+    secrets: inherit
+  lint-yamls:
+    needs:
+    - meta
+    - check-permissions
+    - build-build-tools-image
+    if: ${{ contains(fromJSON('["pr", "push-main", "storage-rc-pr", "proxy-rc-pr", "compute-rc-pr"]'), needs.meta.outputs.run-kind) }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.build-build-tools-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --init
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - run: 'echo "uses: step"'
+    - run: 'echo "run: step"'
+    - run: 'echo "run: step"'
+  check-submodules:
+    needs:
+    - check-permissions
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
+    - name: Checkout
+      run: 'echo "uses: Checkout"'
+    - run: 'echo "uses: step"'
+      id: check-if-submodules-changed
+    - name: Check vendor/postgres-v14 submodule reference
+      if: steps.check-if-submodules-changed.outputs.vendor == 'true'
+      run: 'echo "uses: Check vendor/postgres-v14 submodule reference"'
+    - name: Check vendor/postgres-v15 submodule reference
+      if: steps.check-if-submodules-changed.outputs.vendor == 'true'
+      run: 'echo "uses: Check vendor/postgres-v15 submodule reference"'
+    - name: Check vendor/postgres-v16 submodule reference
+      if: steps.check-if-submodules-changed.outputs.vendor == 'true'
+      run: 'echo "uses: Check vendor/postgres-v16 submodule reference"'
+    - name: Check vendor/postgres-v17 submodule reference
+      if: steps.check-if-submodules-changed.outputs.vendor == 'true'
+      run: 'echo "uses: Check vendor/postgres-v17 submodule reference"'

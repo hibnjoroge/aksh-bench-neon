@@ -1,2 +1,3 @@
 # aksh-bench-neon
-Aksh conformance benchmark: neon workflow
+
+Aksh conformance benchmark: stubbed neon workflow for golden log capture.
