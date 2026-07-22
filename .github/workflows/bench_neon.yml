@@ -61,12 +61,6 @@ jobs:
     - build-build-tools-image
     if: ${{ contains(fromJSON('["pr", "push-main", "storage-rc-pr", "proxy-rc-pr", "compute-rc-pr"]'), needs.meta.outputs.run-kind) }}
     runs-on: ubuntu-latest
-    container:
-      image: ${{ needs.build-build-tools-image.outputs.image }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-      options: --init
     steps:
     - name: Harden the runner (Audit all outbound calls)
       run: 'echo "uses: Harden the runner (Audit all outbound calls)"'
